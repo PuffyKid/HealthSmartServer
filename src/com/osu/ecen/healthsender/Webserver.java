@@ -1,7 +1,11 @@
 package com.osu.ecen.healthsender;
 
 import java.io.IOException;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 
 
 
@@ -18,6 +22,14 @@ public class Webserver implements Runnable {
 	
 	@Override
 	public void run() {
+		try(final DatagramSocket socket = new DatagramSocket()){
+			  socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
+			  String ip = socket.getLocalAddress().getHostAddress();
+			  System.out.println("Starting server on: "+ ip);
+		} catch (UnknownHostException | SocketException e) {
+			System.out.println("Could not start server");
+			e.printStackTrace();
+		}
 		try (ServerSocket ss=new ServerSocket(13337);		){
 
 			Runtime.getRuntime().addShutdownHook(new Thread() {

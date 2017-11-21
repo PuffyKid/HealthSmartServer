@@ -12,7 +12,8 @@ public class HealthSender implements Runnable {
 	 */
 	private Socket socket;
 	public HealthSender(Socket s){
-		socket=s;	
+		socket=s;
+		System.out.println("Connection from: "+s.getRemoteSocketAddress());
 	}
 
 	@Override
@@ -22,12 +23,22 @@ public class HealthSender implements Runnable {
 				BufferedReader in =new BufferedReader(new InputStreamReader(socket.getInputStream()));
 				PrintStream out= new PrintStream(socket.getOutputStream())
 		){
-			out.print("HTTP/1.1 200 OK\r\n");
-			out.print("Content-type: text/html\r\n\r\n");
-			out.flush();
+		String line;
+		while(socket.isConnected()&&!socket.isClosed()) {
+			line = in.readLine();
 			
-			out.print("Test");
-			out.flush();
+			if (line != null) {
+				String[] splitInput = line.split(",");
+				if(!PersonalHealthTracker.isValidRequest(line,splitInput)) {
+					System.out.println("Bad request");
+					continue;
+				}
+				System.out.println("Recv: "+line);
+			
+				out.print(PersonalHealthTracker.getStuff(splitInput[1], splitInput[2])+"\n");
+				out.flush();
+			}
+		}
 			
 		}	
 		catch (IOException e) {
